@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQLFlash 文档查看器</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.7.0/github-markdown.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+      :root { --brand: #7C4DFF; }
+      body { margin:0; }
+      .markdown-body { box-sizing: border-box; min-width: 200px; max-width: 980px; margin: 0 auto; padding: 24px; }
+      .banner { display:flex; justify-content:space-between; align-items:center; padding: 12px 24px; border-bottom: 1px solid #eee; background: #fafbfc; }
+      .banner .title { font-weight: 600; color: var(--brand); }
+      .banner .ops { font-size: 14px; color:#555; }
+      pre code { font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <div class="banner">
+      <div class="title">SQLFlash 文档</div>
+      <div class="ops">渲染引擎：Marked + Mermaid</div>
+    </div>
+    <article id="app" class="markdown-body">加载中...</article>
+    <script>
+      mermaid.initialize({ startOnLoad: false, theme: 'default' });
+      async function render() {
+        const res = await fetch('./README.md');
+        const md = await res.text();
+        // 将 mermaid 代码块替换为占位 div，稍后渲染
+        const mermaidBlocks = [];
+        const transformed = md.replace(/```mermaid([\s\S]*?)```/g, (_, code) => {
+          const id = 'm_' + Math.random().toString(36).slice(2);
+          mermaidBlocks.push({ id, code: code.trim() });
+          return `<div class="mermaid" id="${id}">${code}</div>`;
+        });
+        document.getElementById('app').innerHTML = marked.parse(transformed);
+        // 触发 Mermaid 渲染
+        for (const b of mermaidBlocks) {
+          const el = document.getElementById(b.id);
+          if (el) {
+            mermaid.init(undefined, el);
+          }
+        }
+      }
+      render();
+    </script>
+  </body>
+  </html>
